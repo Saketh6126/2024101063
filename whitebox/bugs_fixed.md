@@ -1,20 +1,27 @@
-# Bugs fixed in game.py
+# Bugs fixed in cards.py
 
-# 5
-moneypoly/game.py:1:0: C0114: Missing module docstring (missing-module-docstring)
-moneypoly/game.py:472:0: C0304: Final newline missing (missing-final-newline)
-moneypoly/game.py:457:0: C0325: Unnecessary parens after 'not' keyword (superfluous-parens)
-moneypoly/game.py:466:0: C0325: Unnecessary parens after 'not' keyword (superfluous-parens)
-moneypoly/game.py:406:12: R1723: Unnecessary "elif" after "break", remove the leading "el" from "elif" (no-else-break)
-moneypoly/game.py:384:28: W1309: Using an f-string that does not have any interpolated variables (f-string-without-interpolation)
-
-# 6
-
-Mention abt TurnResolver class asw in the report
-
-moneypoly/game.py:20:0: R0902: Too many instance attributes (9/7) (too-many-instance-attributes)
-moneypoly/game.py:298:4: R0912: Too many branches (15/12) (too-many-branches)
-
-# 7
-moneypoly/game.py:1:0: W0611: Unused import os (unused-import)
-moneypoly/game.py:3:0: W0611: Unused GO_TO_JAIL_POSITION imported from moneypoly.config (unused-import)
+moneypoly/cards.py:4:0: C0301: Line too long (111/100) (line-too-long)
+moneypoly/cards.py:5:0: C0301: Line too long (112/100) (line-too-long)
+moneypoly/cards.py:6:0: C0301: Line too long (111/100) (line-too-long)
+moneypoly/cards.py:7:0: C0301: Line too long (112/100) (line-too-long)
+moneypoly/cards.py:8:0: C0301: Line too long (113/100) (line-too-long)
+moneypoly/cards.py:9:0: C0301: Line too long (113/100) (line-too-long)
+moneypoly/cards.py:10:0: C0301: Line too long (113/100) (line-too-long)
+moneypoly/cards.py:11:0: C0301: Line too long (112/100) (line-too-long)
+moneypoly/cards.py:12:0: C0301: Line too long (111/100) (line-too-long)
+moneypoly/cards.py:13:0: C0301: Line too long (112/100) (line-too-long)
+moneypoly/cards.py:14:0: C0301: Line too long (112/100) (line-too-long)
+moneypoly/cards.py:15:0: C0301: Line too long (120/100) (line-too-long)
+moneypoly/cards.py:19:0: C0301: Line too long (113/100) (line-too-long)
+moneypoly/cards.py:20:0: C0301: Line too long (112/100) (line-too-long)
+moneypoly/cards.py:21:0: C0301: Line too long (112/100) (line-too-long)
+moneypoly/cards.py:22:0: C0301: Line too long (111/100) (line-too-long)
+moneypoly/cards.py:23:0: C0301: Line too long (113/100) (line-too-long)
+moneypoly/cards.py:24:0: C0301: Line too long (112/100) (line-too-long)
+moneypoly/cards.py:25:0: C0301: Line too long (112/100) (line-too-long)
+moneypoly/cards.py:26:0: C0301: Line too long (113/100) (line-too-long)
+moneypoly/cards.py:27:0: C0301: Line too long (113/100) (line-too-long)
+moneypoly/cards.py:28:0: C0301: Line too long (112/100) (line-too-long)
+moneypoly/cards.py:29:0: C0301: Line too long (112/100) (line-too-long)
+moneypoly/cards.py:30:0: C0301: Line too long (111/100) (line-too-long)
+moneypoly/cards.py:1:0: C0114: Missing module docstring (missing-module-docstring)
