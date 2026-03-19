@@ -1,3 +1,5 @@
+# pylint: disable=import-error
+
 """
 This file sets up everything and then runs the game
 """

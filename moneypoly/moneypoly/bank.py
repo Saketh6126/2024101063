@@ -1,6 +1,7 @@
+# pylint: disable=import-error
+
 import math
 from moneypoly.config import BANK_STARTING_FUNDS
-
 
 class Bank:
     def __init__(self):

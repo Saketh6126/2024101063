@@ -1,3 +1,5 @@
+# pylint: disable=import-error
+
 """
 Includes all the details of a moneypoly board
 basically mapping all the tiles to properties, chance

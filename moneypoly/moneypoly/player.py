@@ -1,6 +1,7 @@
+# pylint: disable=import-error
+
 import sys
 from moneypoly.config import STARTING_BALANCE, BOARD_SIZE, GO_SALARY, JAIL_POSITION
-
 
 class Player:
     """Represents a single player in a MoneyPoly game."""
