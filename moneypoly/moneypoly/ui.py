@@ -1,3 +1,7 @@
+"""
+This file contains the layout(ui) in which the data will be presented to the player
+"""
+
 def print_banner(title):
     """Print a decorated section header."""
     width = 52
@@ -36,7 +40,7 @@ def print_standings(players):
             f"${player.balance:>6,}  "
             f"({player.count_properties()} props)"
             f"{jail_tag}"
-        ) 
+        )
 
 
 def print_board_ownership(board):
@@ -66,7 +70,7 @@ def safe_int_input(prompt, default=0):
     """
     try:
         return int(input(prompt))
-    except:
+    except ValueError:
         return default
 
 
