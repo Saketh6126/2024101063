@@ -1,22 +1,22 @@
+"""
+This file contains all the classes related to property 
+"""
+
+from dataclasses import dataclass
+
+
 class Property:
     """Represents a single purchasable property tile on the MoneyPoly board."""
 
     FULL_GROUP_MULTIPLIER = 2
 
-    def __init__(self, name, position, price, base_rent, group=None):
+    def __init__(self, name, position, price, base_rent):
         self.name = name
         self.position = position
         self.price = price
         self.base_rent = base_rent
-        self.mortgage_value = price // 2
-        self.owner = None
-        self.is_mortgaged = False
-        self.houses = 0
-
-        # Register with the group immediately on creation
-        self.group = group
-        if group is not None and self not in group.properties:
-            group.properties.append(self)
+        self.group = None
+        self.status = OwnershipStatus()
 
     def get_rent(self):
         """
@@ -24,20 +24,30 @@ class Property:
         Rent is doubled if the owner holds the entire colour group.
         Returns 0 if the property is mortgaged.
         """
-        if self.is_mortgaged:
+        if self.status.is_mortgaged:
             return 0
-        if self.group is not None and self.group.all_owned_by(self.owner):
+        if self.group is not None and self.group.all_owned_by(self.status.owner):
             return self.base_rent * self.FULL_GROUP_MULTIPLIER
         return self.base_rent
+
+    # Adding a decorator so that dont need to call it
+    # as a funtion always just a good coding practice
+
+    @property
+    def mortgage_value(self):
+        """
+        Finding mortage value
+        """
+        return self.price // 2
 
     def mortgage(self):
         """
         Mortgage this property and return the payout to the owner.
         Returns 0 if already mortgaged.
         """
-        if self.is_mortgaged:
+        if self.status.is_mortgaged:
             return 0
-        self.is_mortgaged = True
+        self.status.is_mortgaged = True
         return self.mortgage_value
 
     def unmortgage(self):
@@ -45,23 +55,34 @@ class Property:
         Lift the mortgage on this property.
         Returns the cost (110 % of mortgage value), or 0 if not mortgaged.
         """
-        if not self.is_mortgaged:
+        if not self.status.is_mortgaged:
             return 0
-        else:
-            cost = int(self.mortgage_value * 1.1)
-            self.is_mortgaged = False
-            return cost
+        cost = int(self.mortgage_value * 1.1)
+        self.status.is_mortgaged = False
+        return cost
 
     def is_available(self):
         """Return True if this property can be purchased (unowned, not mortgaged)."""
-        return self.owner is None and not self.is_mortgaged
+        return self.status.owner is None and not self.status.is_mortgaged
 
     def __repr__(self):
-        owner_name = self.owner.name if self.owner else "unowned"
+        owner_name = self.status.owner.name if self.status.owner else "unowned"
         return f"Property({self.name!r}, pos={self.position}, owner={owner_name!r})"
 
+@dataclass
+class OwnershipStatus:
+    """
+    Class which contains ownership details of the property
+    """
+    def __init__(self):
+        self.owner = None
+        self.is_mortgaged = False
+        self.houses = 0
 
 class PropertyGroup:
+    """
+    Class with all details of a group
+    """
     def __init__(self, name, color):
         self.name = name
         self.color = color
@@ -77,14 +98,14 @@ class PropertyGroup:
         """Return True if every property in this group is owned by `player`."""
         if player is None:
             return False
-        return any(p.owner == player for p in self.properties)
+        return any(p.status.owner == player for p in self.properties)
 
     def get_owner_counts(self):
         """Return a dict mapping each owner to how many properties they hold in this group."""
         counts = {}
         for prop in self.properties:
-            if prop.owner is not None:
-                counts[prop.owner] = counts.get(prop.owner, 0) + 1
+            if prop.status.owner is not None:
+                counts[prop.status.owner] = counts.get(prop.status.owner, 0) + 1
         return counts
 
     def size(self):
