@@ -4,10 +4,7 @@
 This file sets up everything and then runs the game
 """
 
-import os
-
 from moneypoly.config import (
-    GO_TO_JAIL_POSITION,
     JAIL_FINE,
     AUCTION_MIN_INCREMENT,
     INCOME_TAX_AMOUNT,
@@ -124,7 +121,7 @@ class Game:
 
     def _handle_property_tile(self, player, prop):
         """Decide what to do when `player` lands on a property tile."""
-        if prop.owner is None:
+        if prop.status.owner is None:
             print(f"  {prop.name} is unowned — asking price ${prop.price}.")
             choice = input("  Buy (b), Auction (a), or Skip (s)? ").strip().lower()
             if choice == "b":
@@ -133,7 +130,7 @@ class Game:
                 self.auction_property(prop)
             else:
                 print(f"  {player.name} passes on {prop.name}.")
-        elif prop.owner == player:
+        elif prop.status.owner == player:
             print(f"  {player.name} owns {prop.name}. No rent due.")
         else:
             self.pay_rent(player, prop)
@@ -147,7 +144,7 @@ class Game:
             print(f"  {player.name} cannot afford {prop.name} (${prop.price}).")
             return False
         player.deduct_money(prop.price)
-        prop.owner = player
+        prop.status.owner = player
         player.add_property(prop)
         self.bank.collect(prop.price)
         print(f"  {player.name} purchased {prop.name} for ${prop.price}.")
@@ -155,22 +152,22 @@ class Game:
 
     def pay_rent(self, player, prop):
         """
-        Charge `player` the current rent on `prop` and transfer it to the owner.
+        Charge `player` the current rent on `prop` and transfer it to the.status owner.
         """
         if prop.is_mortgaged:
             print(f"  {prop.name} is mortgaged — no rent collected.")
             return
-        if prop.owner is None:
+        if prop.status.owner is None:
             return
 
         rent = prop.get_rent()
         player.deduct_money(rent)
-        print(f"  {player.name} paid ${rent} rent on {prop.name} to {prop.owner.name}.")
+        print(f"  {player.name} paid ${rent} rent on {prop.name} to {prop.status.owner.name}.")
 
     ##--Dead Code--##
     def mortgage_property(self, player, prop):
         """Mortgage `prop` owned by `player` and credit them the payout."""
-        if prop.owner != player:
+        if prop.status.owner != player:
             print(f"  {player.name} does not own {prop.name}.")
             return False
         payout = prop.mortgage()
@@ -184,7 +181,7 @@ class Game:
 
     def unmortgage_property(self, player, prop):
         """Lift the mortgage on `prop`, charging the player the redemption cost."""
-        if prop.owner != player:
+        if prop.status.owner != player:
             print(f"  {player.name} does not own {prop.name}.")
             return False
         cost = prop.unmortgage()
@@ -205,7 +202,7 @@ class Game:
         in exchange for `cash_amount` from `buyer`.
         Returns True on success.
         """
-        if prop.owner != seller:
+        if prop.status.owner != seller:
             print(f"  Trade failed: {seller.name} does not own {prop.name}.")
             return False
         if buyer.balance < cash_amount:
@@ -213,7 +210,7 @@ class Game:
             return False
 
         buyer.deduct_money(cash_amount)
-        prop.owner = buyer
+        prop.status.owner = buyer
         seller.remove_property(prop)
         buyer.add_property(prop)
         print(
@@ -250,7 +247,7 @@ class Game:
 
         if highest_bidder is not None:
             highest_bidder.deduct_money(highest_bid)
-            prop.owner = highest_bidder
+            prop.status.owner = highest_bidder
             highest_bidder.add_property(prop)
             self.bank.collect(highest_bid)
             print(
@@ -357,7 +354,7 @@ class Game:
             player.is_eliminated = True
             # Release all properties back to the bank
             for prop in list(player.properties):
-                prop.owner = None
+                prop.status.owner = None
                 prop.is_mortgaged = False
             player.properties.clear()
             if player in self.players:
@@ -401,7 +398,7 @@ class Game:
         while True:
             print("\n  Pre-roll options:")
             print("    1. View standings")
-            print("    2. View board ownership")
+            print("    2. View board.status ownership")
             print("    3. Mortgage a property")
             print("    4. Unmortgage a property")
             print("    5. Trade with another player")
@@ -415,7 +412,7 @@ class Game:
             if choice == 1:
                 ui.print_standings(self.players)
             elif choice == 2:
-                ui.print_board_ownership(self.board)
+                ui.print_board.status_ownership(self.board)
             elif choice == 3:
                 self._menu_mortgage(player)
             elif choice == 4:
