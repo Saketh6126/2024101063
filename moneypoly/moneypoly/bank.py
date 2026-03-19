@@ -1,9 +1,15 @@
+"""
+This file contains all the functions related to bank 
+"""
+
 # pylint: disable=import-error
 
-import math
 from moneypoly.config import BANK_STARTING_FUNDS
 
 class Bank:
+    """
+    This class represents a bank it's corresponding attributes and methods
+    """
     def __init__(self):
         self._funds = BANK_STARTING_FUNDS
         self._loans_issued = []
