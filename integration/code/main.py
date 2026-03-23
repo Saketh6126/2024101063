@@ -6,6 +6,10 @@ into the corresponding sub-menu as it is implemented.
 
 import sys
 
+# Module Imports
+import registration
+import crew_management
+
 # Helpers
 DIVIDER = "─" * 40
 
@@ -49,8 +53,62 @@ def menu_registration():
             print("  Invalid choice.")
         pause()
 
+def menu_crew():
+    while True:
+        print(f"\n{DIVIDER}")
+        print(" [2] CREW MANAGEMENT")
+        print(DIVIDER)
+        print("  1. Assign role to member")
+        print("  2. Update skill level")
+        print("  3. Set availability")
+        print("  4. List crew by role")
+        print("  5. List available drivers")
+        print("  0. Back")
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            cid = input("Crew ID: ").strip()
+            role = input("New Role (driver/mechanic/strategist): ").strip().lower()
+            try:
+                crew_management.assign_role(cid, role)
+                print(f"  ✓ Role updated.")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "2":
+            cid = input("Crew ID: ").strip()
+            try:
+                lvl = int(input("Skill Level (1-10): ").strip())
+                crew_management.update_skill(cid, lvl)
+                print(f"  ✓ Skill updated.")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "3":
+            cid = input("Crew ID: ").strip()
+            avail = input("Available? (y/n): ").strip().lower() == "y"
+            try:
+                crew_management.set_availability(cid, avail)
+                print(f"  ✓ Availability updated.")
+            except KeyError as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "4":
+            role = input("Role: ").strip().lower()
+            crew_management.list_by_role(role)
+
+        elif choice == "5":
+            crew_management.get_available_drivers()
+
+        elif choice == "0":
+            break
+        else:
+            print("  Invalid choice.")
+        pause()
+
 MENU_OPTIONS = {
     "1": ("Registration",       menu_registration),
+    "2": ("Crew Management",    menu_crew),
 }
 
 def main():
