@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from moneypoly.cards import CardDeck
 
 def test_card_deck_initialization():
@@ -23,9 +24,15 @@ def test_card_deck_draw_and_peek():
     assert deck.draw() == {"id": 2}
     assert deck.index == 2
     
-    # Cycles back
-    assert deck.draw() == {"id": 1}
-    assert deck.index == 3
+    # After exhausting the deck, it should reshuffle before the next draw.
+    # Mock shuffle so the behavior is deterministic.
+    def reverse_in_place(items):
+        items.reverse()
+
+    with patch("moneypoly.cards.random.shuffle", side_effect=reverse_in_place) as shuf:
+        assert deck.draw() == {"id": 2}
+        shuf.assert_called_once()
+        assert deck.index == 1
 
 def test_card_deck_empty():
     deck = CardDeck([])

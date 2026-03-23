@@ -146,6 +146,11 @@ class CardDeck:
         """
         if not self.cards:
             return None
+
+        # Once all cards have been drawn, reshuffle before starting the next cycle.
+        if self.index > 0 and self.index % len(self.cards) == 0:
+            self.reshuffle()
+
         card = self.cards[self.index % len(self.cards)]
         self.index += 1
         return card
