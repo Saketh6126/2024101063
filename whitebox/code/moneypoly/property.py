@@ -18,15 +18,42 @@ class Property:
         self.group = None
         self.status = OwnershipStatus()
 
+    @property
+    def owner(self):
+        """Getter for property owner."""
+        return self.status.owner
+
+    @owner.setter
+    def owner(self, value):
+        self.status.owner = value
+
+    @property
+    def is_mortgaged(self):
+        """Getter for mortgage status."""
+        return self.status.is_mortgaged
+
+    @is_mortgaged.setter
+    def is_mortgaged(self, value):
+        self.status.is_mortgaged = value
+
+    @property
+    def houses(self):
+        """Getter for property houses."""
+        return self.status.houses
+
+    @houses.setter
+    def houses(self, value):
+        self.status.houses = value
+
     def get_rent(self):
         """
         Return the rent owed for landing on this property.
         Rent is doubled if the owner holds the entire colour group.
         Returns 0 if the property is mortgaged.
         """
-        if self.status.is_mortgaged:
+        if self.is_mortgaged:
             return 0
-        if self.group is not None and self.group.all_owned_by(self.status.owner):
+        if self.group is not None and self.group.all_owned_by(self.owner):
             return self.base_rent * self.FULL_GROUP_MULTIPLIER
         return self.base_rent
 
@@ -45,9 +72,9 @@ class Property:
         Mortgage this property and return the payout to the owner.
         Returns 0 if already mortgaged.
         """
-        if self.status.is_mortgaged:
+        if self.is_mortgaged:
             return 0
-        self.status.is_mortgaged = True
+        self.is_mortgaged = True
         return self.mortgage_value
 
     def unmortgage(self):
@@ -55,18 +82,18 @@ class Property:
         Lift the mortgage on this property.
         Returns the cost (110 % of mortgage value), or 0 if not mortgaged.
         """
-        if not self.status.is_mortgaged:
+        if not self.is_mortgaged:
             return 0
         cost = int(self.mortgage_value * 1.1)
-        self.status.is_mortgaged = False
+        self.is_mortgaged = False
         return cost
 
     def is_available(self):
         """Return True if this property can be purchased (unowned, not mortgaged)."""
-        return self.status.owner is None and not self.status.is_mortgaged
+        return self.owner is None and not self.is_mortgaged
 
     def __repr__(self):
-        owner_name = self.status.owner.name if self.status.owner else "unowned"
+        owner_name = self.owner.name if self.owner else "unowned"
         return f"Property({self.name!r}, pos={self.position}, owner={owner_name!r})"
 
 @dataclass
@@ -98,14 +125,14 @@ class PropertyGroup:
         """Return True if every property in this group is owned by `player`."""
         if player is None:
             return False
-        return any(p.status.owner == player for p in self.properties)
+        return any(p.owner == player for p in self.properties)
 
     def get_owner_counts(self):
         """Return a dict mapping each owner to how many properties they hold in this group."""
         counts = {}
         for prop in self.properties:
-            if prop.status.owner is not None:
-                counts[prop.status.owner] = counts.get(prop.status.owner, 0) + 1
+            if prop.owner is not None:
+                counts[prop.owner] = counts.get(prop.owner, 0) + 1
         return counts
 
     def size(self):
