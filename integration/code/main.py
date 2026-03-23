@@ -12,6 +12,7 @@ import crew_management
 import inventory
 import race_management
 import results
+import mission_planning
 
 # Helpers
 DIVIDER = "─" * 40
@@ -265,12 +266,72 @@ def menu_results():
             print("  Invalid choice.")
         pause()
 
+def menu_missions():
+    while True:
+        print(f"\n{DIVIDER}")
+        print(" [6] MISSION PLANNING")
+        print(DIVIDER)
+        print("  1. Create mission")
+        print("  2. Assign crew to mission")
+        print("  3. Start mission")
+        print("  4. Complete mission")
+        print("  5. List missions")
+        print("  0. Back")
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            mtype = input("Mission type (delivery/rescue/heist): ").strip().lower()
+            roles_raw = input("Required roles (comma-separated): ").strip()
+            req_roles = [r.strip() for r in roles_raw.split(",")]
+            try:
+                mid = mission_planning.create_mission(mtype, req_roles)
+                print(f"  ✓ Mission created [{mid}]")
+            except ValueError as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "2":
+            mid = input("Mission ID: ").strip()
+            crew_raw = input("Crew IDs (comma-separated): ").strip()
+            crew_ids = [c.strip() for c in crew_raw.split(",")]
+            try:
+                mission_planning.assign_crew_to_mission(mid, crew_ids)
+                print(f"  ✓ Crew assigned.")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "3":
+            mid = input("Mission ID: ").strip()
+            try:
+                mission_planning.start_mission(mid)
+                print(f"  ✓ Mission started!")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "4":
+            mid = input("Mission ID: ").strip()
+            try:
+                reward = float(input("Reward: $").strip())
+                mission_planning.complete_mission(mid, reward)
+                print(f"  ✓ Mission completed. Reward added.")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "5":
+            mission_planning.list_missions()
+
+        elif choice == "0":
+            break
+        else:
+            print("  Invalid choice.")
+        pause()
+
 MENU_OPTIONS = {
     "1": ("Registration",       menu_registration),
     "2": ("Crew Management",    menu_crew),
     "3": ("Inventory",          menu_inventory),
     "4": ("Race Management",    menu_race),
-    "5": ("Results",            menu_results)
+    "5": ("Results",            menu_results),
+    "6": ("Mission Planning",   menu_missions)
 }
 
 def main():
