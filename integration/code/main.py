@@ -9,6 +9,8 @@ import sys
 # Module Imports
 import registration
 import crew_management
+import inventory
+import race_management
 
 # Helpers
 DIVIDER = "─" * 40
@@ -106,9 +108,66 @@ def menu_crew():
             print("  Invalid choice.")
         pause()
 
+def menu_inventory():
+    while True:
+        print(f"\n{DIVIDER}")
+        print(" [3] INVENTORY")
+        print(DIVIDER)
+        print("  1. Add car")
+        print("  2. Add spare part")
+        print("  3. Add tool")
+        print("  4. View cash balance")
+        print("  5. Update cash")
+        print("  6. List full inventory")
+        print("  0. Back")
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            name = input("Car name: ").strip()
+            try:
+                speed = int(input("Speed rating (1-10): ").strip())
+                cond = input("Condition (good/damaged/wrecked): ").strip().lower()
+                cid = inventory.add_car(name, speed, cond)
+                print(f"  ✓ Car added [{cid}]")
+            except ValueError as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "2":
+            name = input("Part name: ").strip()
+            qty = int(input("Quantity: ").strip())
+            car_id = input("Linked car ID (or blank): ").strip() or None
+            pid = inventory.add_part(name, qty, car_id)
+            print(f"  ✓ Part added [{pid}]")
+
+        elif choice == "3":
+            tool = input("Tool name: ").strip()
+            inventory.add_tool(tool)
+            print(f"  ✓ Tool added.")
+
+        elif choice == "4":
+            print(f"  Cash: ${inventory.get_cash()}")
+
+        elif choice == "5":
+            try:
+                amt = float(input("Amount (+/-): ").strip())
+                inventory.update_cash(amt)
+                print(f"  ✓ Cash updated. New balance: ${inventory.get_cash()}")
+            except ValueError as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "6":
+            inventory.list_inventory()
+
+        elif choice == "0":
+            break
+        else:
+            print("  Invalid choice.")
+        pause()
+
 MENU_OPTIONS = {
     "1": ("Registration",       menu_registration),
     "2": ("Crew Management",    menu_crew),
+    "3": ("Inventory",          menu_inventory),
 }
 
 def main():
