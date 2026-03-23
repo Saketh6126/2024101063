@@ -19,7 +19,6 @@ class Player:
         self.get_out_of_jail_cards = 0
         self.is_eliminated = False
 
-
     def add_money(self, amount):
         """Add funds to this player's balance. Amount must be non-negative."""
         if amount < 0:
