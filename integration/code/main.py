@@ -137,16 +137,22 @@ def menu_inventory():
                 print(f"  ✗ {e}")
 
         elif choice == "2":
-            name = input("Part name: ").strip()
-            qty = int(input("Quantity: ").strip())
-            car_id = input("Linked car ID (or blank): ").strip() or None
-            pid = inventory.add_part(name, qty, car_id)
-            print(f"  ✓ Part added [{pid}]")
+            try:
+                name = input("Part name: ").strip()
+                qty = int(input("Quantity: ").strip())
+                car_id = input("Linked car ID (or blank): ").strip() or None
+                pid = inventory.add_part(name, qty, car_id)
+                print(f"  ✓ Part added [{pid}]")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
 
         elif choice == "3":
-            tool = input("Tool name: ").strip()
-            inventory.add_tool(tool)
-            print(f"  ✓ Tool added.")
+            try:
+                tool = input("Tool name: ").strip()
+                inventory.add_tool(tool)
+                print(f"  ✓ Tool added.")
+            except ValueError as e:
+                print(f"  ✗ {e}")
 
         elif choice == "4":
             print(f"  Cash: ${inventory.get_cash()}")
@@ -257,10 +263,16 @@ def menu_results():
                 print(f"  ✗ {e}")
 
         elif choice == "3":
-            results.list_results()
+            try:
+                results.list_results()
+            except Exception as e:
+                print(f"  ✗ {e}")
 
         elif choice == "4":
-            results.get_leaderboard()
+            try:
+                results.get_leaderboard()
+            except Exception as e:
+                print(f"  ✗ {e}")
 
         elif choice == "0":
             break
@@ -341,16 +353,31 @@ def menu_analytics():
         choice = input("Choice: ").strip()
 
         if choice == "1":
-            analytics.top_driver()
+            try:
+                analytics.top_driver()
+            except Exception as e:
+                print(f"  ✗ {e}")
         elif choice == "2":
-            analytics.total_earnings()
+            try:
+                analytics.total_earnings()
+            except Exception as e:
+                print(f"  ✗ {e}")
         elif choice == "3":
-            did = input("Driver ID: ").strip()
-            analytics.race_win_rate(did)
+            try:
+                did = input("Driver ID: ").strip()
+                analytics.race_win_rate(did)
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
         elif choice == "4":
-            analytics.mission_success_rate()
+            try:
+                analytics.mission_success_rate()
+            except Exception as e:
+                print(f"  ✗ {e}")
         elif choice == "5":
-            analytics.cash_flow_summary()
+            try:
+                analytics.cash_flow_summary()
+            except Exception as e:
+                print(f"  ✗ {e}")
         elif choice == "0":
             break
         else:
