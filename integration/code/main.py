@@ -13,6 +13,7 @@ import inventory
 import race_management
 import results
 import mission_planning
+import analytics
 
 # Helpers
 DIVIDER = "─" * 40
@@ -325,13 +326,44 @@ def menu_missions():
             print("  Invalid choice.")
         pause()
 
+def menu_analytics():
+    while True:
+        print(f"\n{DIVIDER}")
+        print(" [7] ANALYTICS")
+        print(DIVIDER)
+        print("  1. Top driver")
+        print("  2. Total earnings")
+        print("  3. Driver win rate")
+        print("  4. Mission success rate")
+        print("  5. Cash flow summary")
+        print("  0. Back")
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            analytics.top_driver()
+        elif choice == "2":
+            analytics.total_earnings()
+        elif choice == "3":
+            did = input("Driver ID: ").strip()
+            analytics.race_win_rate(did)
+        elif choice == "4":
+            analytics.mission_success_rate()
+        elif choice == "5":
+            analytics.cash_flow_summary()
+        elif choice == "0":
+            break
+        else:
+            print("  Invalid choice.")
+        pause()
+
 MENU_OPTIONS = {
     "1": ("Registration",       menu_registration),
     "2": ("Crew Management",    menu_crew),
     "3": ("Inventory",          menu_inventory),
     "4": ("Race Management",    menu_race),
     "5": ("Results",            menu_results),
-    "6": ("Mission Planning",   menu_missions)
+    "6": ("Mission Planning",   menu_missions),
+    "7": ("Analytics",          menu_analytics)
 }
 
 def main():
