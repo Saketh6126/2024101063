@@ -14,6 +14,7 @@ import race_management
 import results
 import mission_planning
 import analytics
+import garage
 
 # Helpers
 DIVIDER = "─" * 40
@@ -356,6 +357,43 @@ def menu_analytics():
             print("  Invalid choice.")
         pause()
 
+def menu_garage():
+    while True:
+        print(f"\n{DIVIDER}")
+        print(" [8] GARAGE / MAINTENANCE")
+        print(DIVIDER)
+        print("  1. Schedule repair")
+        print("  2. Complete repair")
+        print("  3. View garage log")
+        print("  0. Back")
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            car_id = input("Car ID: ").strip()
+            mech_id = input("Mechanic ID: ").strip()
+            try:
+                garage.schedule_repair(car_id, mech_id)
+                print(f"  ✓ Repair scheduled.")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "2":
+            car_id = input("Car ID: ").strip()
+            try:
+                garage.complete_repair(car_id)
+                print(f"  ✓ Repair completed. Car restored to good condition.")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "3":
+            garage.list_garage_log()
+
+        elif choice == "0":
+            break
+        else:
+            print("  Invalid choice.")
+        pause()
+
 MENU_OPTIONS = {
     "1": ("Registration",       menu_registration),
     "2": ("Crew Management",    menu_crew),
@@ -363,12 +401,15 @@ MENU_OPTIONS = {
     "4": ("Race Management",    menu_race),
     "5": ("Results",            menu_results),
     "6": ("Mission Planning",   menu_missions),
-    "7": ("Analytics",          menu_analytics)
+    "7": ("Analytics",          menu_analytics),
+    "8": ("Garage",             menu_garage)
 }
 
 def main():
     while True:
         banner()
+        for key, (label, _) in MENU_OPTIONS.items():
+            print(f"  {key}. {label}")
         print("  0. Exit")
         print(DIVIDER)
         choice = input("Select: ").strip()
