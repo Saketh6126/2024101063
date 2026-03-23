@@ -5,6 +5,7 @@ This file sets up everything and then runs the game
 """
 
 from dataclasses import dataclass
+import sys
 from moneypoly.config import (
     JAIL_FINE,
     AUCTION_MIN_INCREMENT,
@@ -89,6 +90,12 @@ class Game:
             self._handle_jail_turn(player)
             self.advance_turn()
             return
+
+        # Optional pre-roll actions (mortgage/trade/loan/etc.). Only show the
+        # menu in interactive runs to avoid blocking in non-interactive contexts
+        # like automated tests.
+        if sys.stdin is not None and sys.stdin.isatty():
+            self.interactive_menu(player)
 
         roll = self.dice.roll()
         print(f"  {player.name} rolled: {self.dice.describe()}")
@@ -200,7 +207,6 @@ class Game:
         prop.owner.add_money(rent)
         print(f"  {player.name} paid ${rent} rent on {prop.name} to {prop.owner.name}.")
 
-    ##--Dead Code--##
     def mortgage_property(self, player, prop):
         """Mortgage `prop` owned by `player` and credit them the payout."""
         if prop.owner != player:
@@ -437,7 +443,6 @@ class Game:
         else:
             print("\n  The game ended with no players remaining.")
 
-    # Dead Code
     def interactive_menu(self, player):
         """
         Offer the current player a pre-roll action menu (mortgage, trade, etc.).

@@ -4,6 +4,7 @@ from moneypoly.game import Game
 from moneypoly.player import Player
 from moneypoly.property import Property
 from moneypoly.config import STARTING_BALANCE
+import sys
 
 def test_game_initialization():
     g = Game(["Alice", "Bob"])
@@ -52,6 +53,17 @@ def test_play_turn_doubles_to_jail(capsys):
     g.play_turn()
     p = g.players[0]
     assert p.in_jail is True
+
+
+def test_play_turn_invokes_interactive_menu_in_tty():
+    g = Game(["Alice", "Bob"])
+    g.dice.roll = MagicMock(return_value=0)
+    g.dice.is_doubles = MagicMock(return_value=False)
+
+    with patch.object(sys.stdin, "isatty", return_value=True):
+        with patch.object(Game, "interactive_menu") as menu:
+            g.play_turn()
+            menu.assert_called_once()
 
 @patch("builtins.input", side_effect=["s"]) # skip buying
 def test_buy_property_skip(mock_input, capsys):
