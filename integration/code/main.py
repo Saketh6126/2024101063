@@ -11,6 +11,7 @@ import registration
 import crew_management
 import inventory
 import race_management
+import results
 
 # Helpers
 DIVIDER = "─" * 40
@@ -221,11 +222,55 @@ def menu_race():
             print("  Invalid choice.")
         pause()
 
+def menu_results():
+    while True:
+        print(f"\n{DIVIDER}")
+        print(" [5] RESULTS")
+        print(DIVIDER)
+        print("  1. Record race result")
+        print("  2. Mark car as damaged")
+        print("  3. View all results")
+        print("  4. View leaderboard")
+        print("  0. Back")
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            rid = input("Race ID: ").strip()
+            try:
+                pos = int(input("Position (1 = 1st): ").strip())
+                prize = float(input("Prize money: $").strip())
+                results.record_result(rid, pos, prize)
+                print(f"  ✓ Result recorded.")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "2":
+            rid = input("Race ID: ").strip()
+            dmg = input("Car damaged? (y/n): ").strip().lower() == "y"
+            try:
+                results.handle_car_damage(rid, dmg)
+                print(f"  ✓ Damage status updated.")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "3":
+            results.list_results()
+
+        elif choice == "4":
+            results.get_leaderboard()
+
+        elif choice == "0":
+            break
+        else:
+            print("  Invalid choice.")
+        pause()
+
 MENU_OPTIONS = {
     "1": ("Registration",       menu_registration),
     "2": ("Crew Management",    menu_crew),
     "3": ("Inventory",          menu_inventory),
-    "4": ("Race Management",    menu_race)
+    "4": ("Race Management",    menu_race),
+    "5": ("Results",            menu_results)
 }
 
 def main():
