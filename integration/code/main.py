@@ -164,10 +164,68 @@ def menu_inventory():
             print("  Invalid choice.")
         pause()
 
+def menu_race():
+    while True:
+        print(f"\n{DIVIDER}")
+        print(" [4] RACE MANAGEMENT")
+        print(DIVIDER)
+        print("  1. Create race")
+        print("  2. Assign driver to race")
+        print("  3. Assign car to race")
+        print("  4. Start race")
+        print("  5. List races")
+        print("  0. Back")
+        choice = input("Choice: ").strip()
+
+        if choice == "1":
+            name = input("Race name: ").strip()
+            track = input("Track: ").strip()
+            try:
+                rid = race_management.create_race(name, track)
+                print(f"  ✓ Race created [{rid}]")
+            except ValueError as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "2":
+            rid = input("Race ID: ").strip()
+            did = input("Driver ID: ").strip()
+            try:
+                race_management.assign_driver(rid, did)
+                print(f"  ✓ Driver assigned.")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "3":
+            rid = input("Race ID: ").strip()
+            cid = input("Car ID: ").strip()
+            try:
+                race_management.assign_car(rid, cid)
+                print(f"  ✓ Car assigned.")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "4":
+            rid = input("Race ID: ").strip()
+            try:
+                race_management.start_race(rid)
+                print(f"  ✓ Race started!")
+            except (KeyError, ValueError) as e:
+                print(f"  ✗ {e}")
+
+        elif choice == "5":
+            race_management.list_races()
+
+        elif choice == "0":
+            break
+        else:
+            print("  Invalid choice.")
+        pause()
+
 MENU_OPTIONS = {
     "1": ("Registration",       menu_registration),
     "2": ("Crew Management",    menu_crew),
     "3": ("Inventory",          menu_inventory),
+    "4": ("Race Management",    menu_race)
 }
 
 def main():
@@ -186,7 +244,6 @@ def main():
         else:
             print("\nInvalid choice.")
             pause()
-
 
 if __name__ == "__main__":
     main()
