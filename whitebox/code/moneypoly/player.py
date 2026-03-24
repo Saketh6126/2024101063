@@ -4,20 +4,64 @@ This file contains all the details abt the player class
 
 # pylint: disable=import-error
 
+from dataclasses import dataclass
 from moneypoly.config import STARTING_BALANCE, BOARD_SIZE, GO_SALARY, JAIL_POSITION
+
+@dataclass
+class PlayerState:
+    """Dataclass to hold the dynamic state of a player."""
+    in_jail: bool = False
+    jail_turns: int = 0
+    get_out_of_jail_cards: int = 0
+    is_eliminated: bool = False
 
 class Player:
     """Represents a single player in a MoneyPoly game."""
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, name, balance=STARTING_BALANCE):
         self.name = name
         self.balance = balance
         self.position = 0
         self.properties = []
-        self.in_jail = False
-        self.jail_turns = 0
-        self.get_out_of_jail_cards = 0
-        self.is_eliminated = False
+        self.state = PlayerState()
+
+    @property
+    def in_jail(self):
+        """Getter for player's jail status."""
+        return self.state.in_jail
+
+    @in_jail.setter
+    def in_jail(self, value):
+        self.state.in_jail = value
+
+    @property
+    def jail_turns(self):
+        """Getter for number of turns spent in jail."""
+        return self.state.jail_turns
+
+    @jail_turns.setter
+    def jail_turns(self, value):
+        self.state.jail_turns = value
+
+    @property
+    def get_out_of_jail_cards(self):
+        """Getter for get out of jail cards inventory."""
+        return self.state.get_out_of_jail_cards
+
+    @get_out_of_jail_cards.setter
+    def get_out_of_jail_cards(self, value):
+        self.state.get_out_of_jail_cards = value
+
+    @property
+    def is_eliminated(self):
+        """Getter for player's elimination status."""
+        return self.state.is_eliminated
+
+    @is_eliminated.setter
+    def is_eliminated(self, value):
+        self.state.is_eliminated = value
+
 
     def add_money(self, amount):
         """Add funds to this player's balance. Amount must be non-negative."""
@@ -45,11 +89,13 @@ class Player:
         Awards the Go salary if the player passes or lands on Go.
         Returns the new board position.
         """
+        old_position = self.position
         self.position = (self.position + steps) % BOARD_SIZE
 
-        if self.position == 0:
+        # If they landed exactly on Go or passed it (position wrapped around)
+        if self.position == 0 or (self.position < old_position and steps > 0):
             self.add_money(GO_SALARY)
-            print(f"  {self.name} landed on Go and collected ${GO_SALARY}.")
+            print(f"  {self.name} landed on or passed Go and collected ${GO_SALARY}.")
 
         return self.position
 

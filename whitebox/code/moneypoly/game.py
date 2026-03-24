@@ -4,6 +4,8 @@
 This file sets up everything and then runs the game
 """
 
+from dataclasses import dataclass
+import sys
 from moneypoly.config import (
     JAIL_FINE,
     AUCTION_MIN_INCREMENT,
@@ -20,19 +22,53 @@ from moneypoly.cards import CardDeck, CHANCE_CARDS, COMMUNITY_CHEST_CARDS
 from moneypoly import ui
 
 
+
+@dataclass
+class GameState:
+    """Dataclass to hold the mutable state of the game loop."""
+    current_index: int = 0
+    turn_number: int = 0
+    running: bool = True
+
 class Game:
     """Manages the full state and flow of a MoneyPoly game session."""
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, player_names):
         self.board = Board()
         self.bank = Bank()
         self.dice = Dice()
         self.players = [Player(name) for name in player_names]
-        self.current_index = 0
-        self.turn_number = 0
-        self.running = True
+        self.state = GameState()
         self.chance_deck = CardDeck(CHANCE_CARDS)
         self.community_deck = CardDeck(COMMUNITY_CHEST_CARDS)
+
+    @property
+    def current_index(self):
+        """Getter for the current player's index."""
+        return self.state.current_index
+
+    @current_index.setter
+    def current_index(self, value):
+        self.state.current_index = value
+
+    @property
+    def turn_number(self):
+        """Getter for the current turn number."""
+        return self.state.turn_number
+
+    @turn_number.setter
+    def turn_number(self, value):
+        self.state.turn_number = value
+
+    @property
+    def running(self):
+        """Getter for checking if the game is running."""
+        return self.state.running
+
+    @running.setter
+    def running(self, value):
+        self.state.running = value
 
     def current_player(self):
         """Return the Player whose turn it currently is."""
@@ -54,6 +90,12 @@ class Game:
             self._handle_jail_turn(player)
             self.advance_turn()
             return
+
+        # Optional pre-roll actions (mortgage/trade/loan/etc.). Only show the
+        # menu in interactive runs to avoid blocking in non-interactive contexts
+        # like automated tests.
+        if sys.stdin is not None and sys.stdin.isatty():
+            self.interactive_menu(player)
 
         roll = self.dice.roll()
         print(f"  {player.name} rolled: {self.dice.describe()}")
@@ -121,7 +163,7 @@ class Game:
 
     def _handle_property_tile(self, player, prop):
         """Decide what to do when `player` lands on a property tile."""
-        if prop.status.owner is None:
+        if prop.owner is None:
             print(f"  {prop.name} is unowned — asking price ${prop.price}.")
             choice = input("  Buy (b), Auction (a), or Skip (s)? ").strip().lower()
             if choice == "b":
@@ -130,7 +172,7 @@ class Game:
                 self.auction_property(prop)
             else:
                 print(f"  {player.name} passes on {prop.name}.")
-        elif prop.status.owner == player:
+        elif prop.owner == player:
             print(f"  {player.name} owns {prop.name}. No rent due.")
         else:
             self.pay_rent(player, prop)
@@ -144,7 +186,7 @@ class Game:
             print(f"  {player.name} cannot afford {prop.name} (${prop.price}).")
             return False
         player.deduct_money(prop.price)
-        prop.status.owner = player
+        prop.owner = player
         player.add_property(prop)
         self.bank.collect(prop.price)
         print(f"  {player.name} purchased {prop.name} for ${prop.price}.")
@@ -157,17 +199,17 @@ class Game:
         if prop.is_mortgaged:
             print(f"  {prop.name} is mortgaged — no rent collected.")
             return
-        if prop.status.owner is None:
+        if prop.owner is None:
             return
 
         rent = prop.get_rent()
         player.deduct_money(rent)
-        print(f"  {player.name} paid ${rent} rent on {prop.name} to {prop.status.owner.name}.")
+        prop.owner.add_money(rent)
+        print(f"  {player.name} paid ${rent} rent on {prop.name} to {prop.owner.name}.")
 
-    ##--Dead Code--##
     def mortgage_property(self, player, prop):
         """Mortgage `prop` owned by `player` and credit them the payout."""
-        if prop.status.owner != player:
+        if prop.owner != player:
             print(f"  {player.name} does not own {prop.name}.")
             return False
         payout = prop.mortgage()
@@ -181,7 +223,7 @@ class Game:
 
     def unmortgage_property(self, player, prop):
         """Lift the mortgage on `prop`, charging the player the redemption cost."""
-        if prop.status.owner != player:
+        if prop.owner != player:
             print(f"  {player.name} does not own {prop.name}.")
             return False
         cost = prop.unmortgage()
@@ -202,7 +244,7 @@ class Game:
         in exchange for `cash_amount` from `buyer`.
         Returns True on success.
         """
-        if prop.status.owner != seller:
+        if prop.owner != seller:
             print(f"  Trade failed: {seller.name} does not own {prop.name}.")
             return False
         if buyer.balance < cash_amount:
@@ -210,7 +252,8 @@ class Game:
             return False
 
         buyer.deduct_money(cash_amount)
-        prop.status.owner = buyer
+        seller.add_money(cash_amount)
+        prop.owner = buyer
         seller.remove_property(prop)
         buyer.add_property(prop)
         print(
@@ -247,7 +290,7 @@ class Game:
 
         if highest_bidder is not None:
             highest_bidder.deduct_money(highest_bid)
-            prop.status.owner = highest_bidder
+            prop.owner = highest_bidder
             highest_bidder.add_property(prop)
             self.bank.collect(highest_bid)
             print(
@@ -306,45 +349,53 @@ class Game:
         action = card["action"]
         value = card["value"]
 
-        if action == "collect":
-            amount = self.bank.pay_out(value)
-            player.add_money(amount)
+        handlers = {
+            "collect": self._card_collect,
+            "pay": self._card_pay,
+            "jail": self._card_jail,
+            "jail_free": self._card_jail_free,
+            "move_to": self._card_move_to,
+            "birthday": self._card_collect_from_all,
+            "collect_from_all": self._card_collect_from_all,
+        }
 
-        elif action == "pay":
-            player.deduct_money(value)
-            self.bank.collect(value)
+        handler = handlers.get(action)
+        if handler:
+            handler(player, value)
 
-        elif action == "jail":
-            player.go_to_jail()
-            print(f"  {player.name} has been sent to Jail!")
+    def _card_collect(self, player, value):
+        amount = self.bank.pay_out(value)
+        player.add_money(amount)
 
-        elif action == "jail_free":
-            player.get_out_of_jail_cards += 1
-            print(f"  {player.name} now holds a Get Out of Jail Free card.")
+    def _card_pay(self, player, value):
+        player.deduct_money(value)
+        self.bank.collect(value)
 
-        elif action == "move_to":
-            old_pos = player.position
-            player.position = value
-            if value < old_pos:
-                player.add_money(GO_SALARY)
-                print(f"  {player.name} passed Go and collected ${GO_SALARY}.")
-            tile = self.board.get_tile_type(value)
-            if tile == "property":
-                prop = self.board.get_property_at(value)
-                if prop:
-                    self._handle_property_tile(player, prop)
+    def _card_jail(self, player, _value):
+        player.go_to_jail()
+        print(f"  {player.name} has been sent to Jail!")
 
-        elif action == "birthday":
-            for other in self.players:
-                if other != player and other.balance >= value:
-                    other.deduct_money(value)
-                    player.add_money(value)
+    def _card_jail_free(self, player, _value):
+        player.get_out_of_jail_cards += 1
+        print(f"  {player.name} now holds a Get Out of Jail Free card.")
 
-        elif action == "collect_from_all":
-            for other in self.players:
-                if other != player and other.balance >= value:
-                    other.deduct_money(value)
-                    player.add_money(value)
+    def _card_move_to(self, player, value):
+        old_pos = player.position
+        player.position = value
+        if value < old_pos:
+            player.add_money(GO_SALARY)
+            print(f"  {player.name} passed Go and collected ${GO_SALARY}.")
+        tile = self.board.get_tile_type(value)
+        if tile == "property":
+            prop = self.board.get_property_at(value)
+            if prop:
+                self._handle_property_tile(player, prop)
+
+    def _card_collect_from_all(self, player, value):
+        for other in self.players:
+            if other != player and other.balance >= value:
+                other.deduct_money(value)
+                player.add_money(value)
 
 
     def _check_bankruptcy(self, player):
@@ -354,11 +405,14 @@ class Game:
             player.is_eliminated = True
             # Release all properties back to the bank
             for prop in list(player.properties):
-                prop.status.owner = None
+                prop.owner = None
                 prop.is_mortgaged = False
             player.properties.clear()
             if player in self.players:
+                idx = self.players.index(player)
                 self.players.remove(player)
+                if idx <= self.current_index:
+                    self.current_index -= 1
             if self.current_index >= len(self.players):
                 self.current_index = 0
 
@@ -366,7 +420,7 @@ class Game:
         """Return the player with the highest net worth."""
         if not self.players:
             return None
-        return min(self.players, key=lambda p: p.net_worth())
+        return max(self.players, key=lambda p: p.net_worth())
 
     def run(self):
         """Run the game loop until only one player remains or turns run out."""
@@ -389,7 +443,6 @@ class Game:
         else:
             print("\n  The game ended with no players remaining.")
 
-    # Dead Code
     def interactive_menu(self, player):
         """
         Offer the current player a pre-roll action menu (mortgage, trade, etc.).
@@ -398,7 +451,7 @@ class Game:
         while True:
             print("\n  Pre-roll options:")
             print("    1. View standings")
-            print("    2. View board.status ownership")
+            print("    2. View board ownership")
             print("    3. Mortgage a property")
             print("    4. Unmortgage a property")
             print("    5. Trade with another player")
@@ -412,7 +465,7 @@ class Game:
             if choice == 1:
                 ui.print_standings(self.players)
             elif choice == 2:
-                ui.print_board.status_ownership(self.board)
+                ui.print_board_ownership(self.board)
             elif choice == 3:
                 self._menu_mortgage(player)
             elif choice == 4:
