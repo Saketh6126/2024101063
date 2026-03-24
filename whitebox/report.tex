@@ -1,0 +1,240 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage{array}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.35em}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\sloppy
+
+\begin{document}
+\begin{center}
+{\LARGE\bfseries MoneyPoly: Code Quality Analysis \& White-Box Testing Report\par}
+\vspace{0.25em}
+{\large Roll No: 2024101063\par}
+\end{center}
+\vspace{0.5em}
+
+% ============================================================
+\section{Code Quality Analysis (Pylint)}
+\label{sec:pylint}
+
+\subsection{Requirement coverage}
+This section addresses the requirement:\\
+\textit{``Use pylint to analyze the codebase. Make sure to iteratively fix the code as per the warnings and suggestions. Document all the changes in the report. Save each iteration as a commit in the format \texttt{Iteration \#:\ <What You Changed>}''}.
+
+\subsection{Project layout notes}
+During development, the project layout was reorganized. In particular, commit \texttt{10e4ebc} moved the runnable package under \texttt{whitebox/code/moneypoly} (and the entrypoint under \texttt{whitebox/code/main.py}).
+
+\subsection{How pylint was run}
+Because the importable package lives under \texttt{whitebox/code}, pylint was executed from that directory:
+
+\begin{verbatim}
+cd whitebox/code
+python -m pylint moneypoly --score=y
+\end{verbatim}
+
+\subsection{Final pylint status}
+On the final state of the \texttt{main} branch, pylint reports:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Score:} 10.00/10
+\end{itemize}
+
+\subsection{Iteration-by-iteration change log}
+Each pylint-driven cleanup pass was saved as an \texttt{Iteration \#} commit. The table below documents \textbf{all iteration commits}, their hashes, and the \textbf{files touched} in each iteration. (The intent and file lists are taken directly from the commit history.)
+
+\begin{longtable}{@{}r p{0.12\textwidth} p{0.33\textwidth} >{\raggedright\arraybackslash}p{0.43\textwidth}@{}}
+\toprule
+\textbf{Iter.} & \textbf{Hash} & \textbf{Commit subject} & \textbf{Files changed / what was updated} \\
+\midrule
+\endhead
+1  & 377b37e & Board Module fixed & Updated board implementation (\texttt{board.py}) to satisfy pylint and improve module hygiene. \\
+2  & 1ae7ab5 & Config Module fixed & Updated configuration module (\texttt{config.py}) for lint compliance and clarity. \\
+3  & ed46260 & Property module fixed & Updated \texttt{board.py} and \texttt{property.py} to address lint findings across property/group interactions. \\
+4  & 522ec59 & UI module fixed & Updated UI helpers (\texttt{ui.py}) to satisfy pylint and standardize formatting/inputs. \\
+5  & a570c26 & Game module simple warnings fixed & Updated game loop (\texttt{game.py}); also introduced \texttt{whitebox/bugs\_fixed.md} as a running log. \\
+6  & fd81804 & Cards module fixed and gitignore added & Updated cards/deck logic (\texttt{cards.py}); added \texttt{.gitignore}; removed committed cache artifacts. \\
+7  & 2778194 & Dice module fixed + removed import error & Updated multiple modules (bank/board/dice/game/player) to resolve lint/import issues exposed by dice changes. \\
+8  & 590ffab & Bank module fixed & Updated \texttt{bank.py} and documentation log for consistent validation and clean API behavior. \\
+9  & d9ff76b & Player module basic warnings fixed & Updated \texttt{player.py} and documentation log for cleaner state handling and lint compliance. \\
+10 & e951079 & Game module unused imports errors fixed & Updated \texttt{board.py} and \texttt{game.py} to remove unused imports and remaining lint-only issues. \\
+11 & 10e4ebc & Final cleanup + refactor; moved code under whitebox & Refactored and reorganized: moved package to \texttt{whitebox/code/moneypoly} and entrypoint to \texttt{whitebox/code/main.py}. \\
+\bottomrule
+\end{longtable}
+
+\noindent\textbf{Note:} The goal of the iteration commits is not feature work; each iteration is a focused lint-driven cleanup of the indicated module(s). The report records the exact commit boundaries so the grader can verify the iterative process.
+
+% ============================================================
+\section{White-Box Test Cases}
+\label{sec:whitebox}
+
+\subsection{Requirement coverage}
+This section addresses the requirement:\\
+\textit{``Design white-box test cases based on the structure of the code. Your tests must cover: (i) All branches, (ii) Key variable states that could affect program behavior, (iii) Relevant edge cases. In the report, explain in simple words why each test case is needed, along with all the errors or logical issues found by the test.''}
+
+\subsection{Where the tests live (as per directory requirement)}
+Per the required directory structure, the white-box test suite is located at:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{whitebox/tests}
+\end{itemize}
+
+\subsection{How tests were run}
+Because the importable package lives under \texttt{whitebox/code}, the test runner is executed from \texttt{whitebox/} and \texttt{whitebox/tests/conftest.py} adds \texttt{whitebox/code} to the import path:
+
+\begin{verbatim}
+cd whitebox
+python -m pytest -q tests
+\end{verbatim}
+
+\subsection{Test-case catalog (why each test is needed)}
+This subsection explains \textbf{each test case} in simple words: what branch/state/edge-case it targets and why that matters.
+
+\subsubsection*{Bank --- \texttt{whitebox/tests/test\_bank.py}}
+\begin{description}[leftmargin=*,style=nextline]
+  \item[\nolinkurl{test_bank_initialization}] Checks initial state (reserves/loan counters). This is the baseline for every later Bank branch. (Issue found: none)
+  \item[\nolinkurl{test_bank_collect}] Covers the positive-amount collect branch; ensures balance increases correctly. (Issue found: none)
+  \item[\nolinkurl{test_bank_pay_out}] Covers the normal payout branch; ensures value returned and funds decrease. (Issue found: none)
+  \item[\nolinkurl{test_bank_pay_out_negative_or_zero}] Edge-case: payout of 0/negative must be a no-op to prevent corrupting balances. (Issue found: none)
+  \item[\nolinkurl{test_bank_pay_out_insufficient_funds}] Branch: bank must refuse to overpay; validates exception path. (Issue found: none)
+  \item[\nolinkurl{test_bank_give_loan}] State path: loan changes both player balance and bank accounting; also validates printed output. (Issue found: none)
+  \item[\nolinkurl{test_bank_give_loan_negative_or_zero}] Edge-case: invalid loan amounts must not create loan records. (Issue found: none)
+  \item[\nolinkurl{test_bank_summary_and_repr}] Ensures reporting helpers remain stable for debugging and UI logs. (Issue found: none)
+\end{description}
+
+\subsubsection*{Board --- \texttt{whitebox/tests/test\_board.py}}
+\begin{description}[leftmargin=*,style=nextline]
+  \item[\nolinkurl{test_board_initialization}] Confirms the board loads properties and groups; sanity-checks tile typing at position 0. (Issue found: none)
+  \item[\nolinkurl{test_get_tile_type}] Covers the decision paths for many tiles and the out-of-range fallback. (Issue found: none)
+  \item[\nolinkurl{test_get_property_at}] Covers returning a Property vs \texttt{None} for non-property/out-of-bounds. (Issue found: none)
+  \item[\nolinkurl{test_is_purchasable}] Covers branches: non-property, owned, and mortgaged states. (Issue found: none)
+  \item[\nolinkurl{test_is_special_tile}] Covers special-tile decision logic and blank fallback. (Issue found: none)
+  \item[\nolinkurl{test_ownership_queries}] Ensures board ownership aggregations are correct (used by game/UI). (Issue found: none)
+  \item[\nolinkurl{test_board_repr}] Ensures repr remains useful/stable for debugging. (Issue found: none)
+\end{description}
+
+\subsubsection*{Cards --- \texttt{whitebox/tests/test\_cards.py}}
+\begin{description}[leftmargin=*,style=nextline]
+  \item[\nolinkurl{test_card_deck_initialization}] Validates initial deck state and cards-remaining computation. (Issue found: none)
+  \item[\nolinkurl{test_card_deck_draw_and_peek}] Covers index changes and the exhaustion boundary; ensures reshuffle happens before the next cycle. (Issue found: Error~9)
+  \item[\nolinkurl{test_card_deck_empty}] Edge-case: empty deck must return \texttt{None} without crashing. (Issue found: none)
+  \item[\nolinkurl{test_card_deck_reshuffle}] Covers reshuffle branch; ensures index reset and size preserved. (Issue found: none)
+  \item[\nolinkurl{test_card_deck_repr}] Ensures repr includes size and next index for debugging. (Issue found: none)
+\end{description}
+
+\subsubsection*{Dice --- \texttt{whitebox/tests/test\_dice.py}}
+\begin{description}[leftmargin=*,style=nextline]
+  \item[\nolinkurl{test_dice_initialization}] Baseline dice state; sanity-checks helpers derived from default values. (Issue found: none)
+  \item[\nolinkurl{test_dice_roll_bounds}] Ensures dice outputs remain in 1--6 and totals 2--12 for all paths. (Issue found: Error~3)
+  \item[\nolinkurl{test_dice_doubles_streak}] Covers doubles streak increment/reset branch with deterministic random. (Issue found: none)
+  \item[\nolinkurl{test_dice_reset}] Ensures reset clears all dice state to avoid cross-turn leakage. (Issue found: none)
+  \item[\nolinkurl{test_dice_describe}] Covers output formatting for doubles/non-doubles. (Issue found: none)
+  \item[\nolinkurl{test_dice_repr}] Ensures repr remains stable for debugging. (Issue found: none)
+\end{description}
+
+\subsubsection*{Player --- \texttt{whitebox/tests/test\_player.py}}
+\begin{description}[leftmargin=*,style=nextline]
+  \item[\nolinkurl{test_player_initialization}] Baseline player state (money, position, jail flags) used by many game branches. (Issue found: none)
+  \item[\nolinkurl{test_player_initialization_custom_balance}] Covers constructor branch for custom balances. (Issue found: none)
+  \item[\nolinkurl{test_add_money}] Normal add-money branch. (Issue found: none)
+  \item[\nolinkurl{test_add_money_negative_raises_valueerror}] Edge-case: reject negative additions. (Issue found: none)
+  \item[\nolinkurl{test_deduct_money}] Normal deduct-money branch. (Issue found: none)
+  \item[\nolinkurl{test_deduct_money_negative_raises_valueerror}] Edge-case: reject negative deductions. (Issue found: none)
+  \item[\nolinkurl{test_is_bankrupt}] Covers bankruptcy decision boundary at 0 and negative values. (Issue found: none)
+  \item[\nolinkurl{test_net_worth}] Baseline net worth for winner logic. (Issue found: none)
+  \item[\nolinkurl{test_move_no_wrap}] Branch: no GO crossing means no salary. (Issue found: none)
+  \item[\nolinkurl{test_move_with_wrap}] Branch: wrap-around must award GO salary and print message. (Issue found: Error~1)
+  \item[\nolinkurl{test_move_past_go}] Branch: crossing GO by more than board size must still award salary. (Issue found: Error~1)
+  \item[\nolinkurl{test_go_to_jail}] State transition: set jail flags and move to jail position. (Issue found: none)
+  \item[\nolinkurl{test_add_and_remove_property}] Covers dedup/remove-missing branches for property list management. (Issue found: none)
+  \item[\nolinkurl{test_status_line}] Covers jailed vs non-jailed formatting branch. (Issue found: none)
+  \item[\nolinkurl{test_repr}] Ensures repr stability. (Issue found: none)
+  \item[\nolinkurl{test_state_properties}] Covers getters/setters for key state variables. (Issue found: none)
+\end{description}
+
+\subsubsection*{Property --- \texttt{whitebox/tests/test\_property.py}}
+\begin{description}[leftmargin=*,style=nextline]
+  \item[\nolinkurl{test_property_initialization}] Baseline property state affecting rent/mortgage branches. (Issue found: none)
+  \item[\nolinkurl{test_property_mortgage_value}] Validates mortgage value calculation used in mortgage cashflow. (Issue found: none)
+  \item[\nolinkurl{test_property_mortgage}] Covers mortgage branch + repeated mortgage no-op edge-case. (Issue found: none)
+  \item[\nolinkurl{test_property_unmortgage}] Covers unmortgage branch + repeated unmortgage no-op edge-case. (Issue found: none)
+  \item[\nolinkurl{test_property_is_available}] Covers availability branches: unowned/owned/mortgaged. (Issue found: none)
+  \item[\nolinkurl{test_property_repr}] Covers owned vs unowned repr branch. (Issue found: none)
+  \item[\nolinkurl{test_property_get_rent_basic}] Covers base rent and mortgaged rent=0 branch. (Issue found: none)
+  \item[\nolinkurl{test_property_get_rent_full_group}] Covers full-group doubling branch and regression to base rent when group breaks. (Issue found: Error~2)
+  \item[\nolinkurl{test_property_group_basic}] Covers group bookkeeping and duplicate-add edge-case. (Issue found: none)
+  \item[\nolinkurl{test_property_group_all_owned_by}] Covers ownership decision branches for partial ownership. (Issue found: none)
+  \item[\nolinkurl{test_property_group_owner_counts}] Covers aggregation of owner counts (reporting/analysis). (Issue found: none)
+\end{description}
+
+\subsubsection*{UI --- \texttt{whitebox/tests/test\_ui.py}}
+\begin{description}[leftmargin=*,style=nextline]
+  \item[\nolinkurl{test_print_banner}] Smoke-test for output formatting. (Issue found: none)
+  \item[\nolinkurl{test_print_player_card}] Covers printing when jailed and holding jail cards. (Issue found: none)
+  \item[\nolinkurl{test_print_player_card_with_properties}] Covers printing when properties exist and are mortgaged. (Issue found: none)
+  \item[\nolinkurl{test_print_standings}] Covers jailed annotation branch in standings output. (Issue found: none)
+  \item[\nolinkurl{test_print_board_ownership}] Covers mortgaged marker branch in ownership table. (Issue found: none)
+  \item[\nolinkurl{test_format_currency}] Edge-case: large numbers formatting. (Issue found: none)
+  \item[\nolinkurl{test_safe_int_input}] Edge-case: invalid/empty input falls back to default instead of crashing. (Issue found: none)
+  \item[\nolinkurl{test_confirm}] Covers parsing branches for yes/no input. (Issue found: none)
+\end{description}
+
+\subsubsection*{Game --- \texttt{whitebox/tests/test\_game.py}}
+\begin{description}[leftmargin=*,style=nextline]
+  \item[\nolinkurl{test_game_initialization}] Baseline game state (players, counters, running flag). (Issue found: none)
+  \item[\nolinkurl{test_advance_turn}] Covers round-robin wrap-around and turn-number update. (Issue found: none)
+  \item[\nolinkurl{test_find_winner}] Covers winner computation branch (max net worth). (Issue found: Error~4)
+  \item[\nolinkurl{test_play_turn_jail}] Covers jailed-player branch when player declines to pay/use card. (Issue found: none)
+  \item[\nolinkurl{test_play_turn_doubles_to_jail}] Covers three-doubles-to-jail rule branch. (Issue found: none)
+  \item[\nolinkurl{test_play_turn_invokes_interactive_menu_in_tty}] Ensures pre-roll menu is reachable during normal play (interactive only). (Issue found: Error~8)
+  \item[\nolinkurl{test_buy_property_skip}] Covers unowned property decision branch: skip. (Issue found: none)
+  \item[\nolinkurl{test_buy_property_buy}] Covers unowned property decision branch: buy. (Issue found: none)
+  \item[\nolinkurl{test_buy_property_auction}] Covers unowned property decision branch: auction. (Issue found: none)
+  \item[\nolinkurl{test_auction_logic}] Covers auction branch where a bidder wins. (Issue found: none)
+  \item[\nolinkurl{test_auction_logic_all_pass}] Edge-case: all players pass; property remains unowned. (Issue found: none)
+  \item[\nolinkurl{test_pay_rent}] Covers rent payment branch and transfer of money to owner. (Issue found: Error~6)
+  \item[\nolinkurl{test_mortgage_and_unmortgage_commands}] Covers mortgage/unmortgage state transitions. (Issue found: none)
+  \item[\nolinkurl{test_trade_logic}] Covers trade cash + ownership transfer. (Issue found: Error~7)
+  \item[\nolinkurl{test_bankruptcy_skips}] Regression: ensure player elimination does not skip the next player. (Issue found: Error~5)
+  \item[\nolinkurl{test_apply_card_actions}] Covers card action dispatch branches (collect/pay/jail/jail-free/move/birthday). (Issue found: none)
+\end{description}
+
+\section{Errors / Logical Issues Found and Fixed}
+\label{sec:errors}
+The table below lists each discovered issue (via the tests above), the fixing commit, and the short explanation of what was wrong.
+
+\begin{longtable}{@{}r p{0.12\textwidth} p{0.22\textwidth} p{0.56\textwidth}@{}}
+\toprule
+\textbf{Err.} & \textbf{Hash} & \textbf{Primary test trigger} & \textbf{What was wrong (simple words) and what was changed} \\
+\midrule
+\endhead
+1 & c374dc3 & \nolinkurl{test_move_with_wrap / test_move_past_go} & Passing/landing on GO did not reliably award salary; fixed movement logic to add GO salary when wrapping. \\
+2 & d9ef01c & \nolinkurl{test_property_get_rent_full_group} & Rent doubling logic for complete ownership sets was incorrect; fixed rent calculation to double only when group ownership condition holds. \\
+3 & 9e52b9f & \nolinkurl{test_dice_roll_bounds} & Dice roll range missed the value 6; fixed randomness bounds so dice results are 1--6. \\
+4 & ab3ac14 & \nolinkurl{test_find_winner} & Winner selection used the wrong comparator (min instead of max); fixed to return player with maximum net worth. \\
+5 & 69ff35c & \nolinkurl{test_bankruptcy_skips} & Removing a bankrupt player could mis-adjust \texttt{current\_index} and skip the next player; fixed index update on elimination. \\
+6 & a7b0105 & \nolinkurl{test_pay_rent} & Rent was not being transferred correctly to the property owner; fixed rent transfer to credit the owner. \\
+7 & 3c28703 & \nolinkurl{test_trade_logic} & Trade did not correctly transfer cash to the seller; fixed trade cashflow and ownership updates. \\
+8 & 6d1706b & \nolinkurl{test_play_turn_invokes_interactive_menu_in_tty} & Mortgage/trade/menu logic existed but was unreachable from normal play; integrated menu into the turn flow for interactive runs. \\
+9 & a09756e & \nolinkurl{test_card_deck_draw_and_peek} & Card decks cycled without reshuffling, making draws predictable after one full cycle; reshuffle now occurs automatically on exhaustion. \\
+\bottomrule
+\end{longtable}
+
+\end{document}
