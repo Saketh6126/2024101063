@@ -11,10 +11,3 @@ __pycache__/
 # macOS
 .DS_Store
 
-# LaTeX build artifacts
-*.aux
-*.log
-*.out
-*.toc
-*.fls
-*.fdb_latexmk
